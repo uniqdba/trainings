@@ -1,0 +1,265 @@
+Install using package manager
+CentOS/RHEL
+
+#install epel(Extra Packages for Enterprise Linux ) repositories
+sudo yum install epel-release
+
+#update the list of packages
+sudo yum update
+
+#install redis
+sudo yum install redis
+
+#enable redis to start when system restarts
+sudo systemctl enable redis
+
+#start redis server
+sudo systemctl start redis
+
+#check redis server version
+redis-server --version
+
+#check the help
+redis-server --help
+
+#check whether redis is working
+redis-cli ping
+
+#using rpm check redis packages
+rpm -qa | grep -i redis
+
+#check all the files installed by redis package
+rpm -ql redis
+
+#remove redis, might have to clean log,data if necessary
+sudo yum remove redis
+
+
+
+Ubuntu
+
+#update the list of packages
+sudo apt-get update
+
+#install redis server
+sudo apt-get install redis-server
+
+#to start when system restarts
+sudo systemctl enable redis-server.service 
+
+#check the redis server status
+sudo systemctl status redis
+
+#check redis version
+redis-server --version
+
+#check the help
+redis-server --help
+
+#check redis is working
+redis-cli ping
+
+
+#using dpkg check redis packages
+dpkg -l | grep -i redis
+
+#check the files installed by the redis packages
+dpkg -L redis-server
+dpkg -L redis-tools
+
+#remove redis, might have to clean log,data if necessary
+sudo apt-get remove redis-server
+sudo apt-get remove redis-tools
+
+Compile and install
+CentOS/RHEL
+
+#1. download the source and extract
+wget http://download.redis.io/releases/redis-5.0.5.tar.gz
+tar -xzvf redis-5.0.5.tar.gz && cd redis-5.0.5
+
+#2. install build essentials
+sudo yum groupinstall "Development Tools"
+
+#3. Compile redis binaries
+make
+
+#4. install the redis binaries, default location /usr/local/bin
+sudo make install
+
+#5. create a redis user and required directories
+
+sudo groupadd redis
+sudo useradd -g redis -d /var/lib/redis -s /sbin/nologin redis
+sudo mkdir -p /var/lib/redis
+sudo mkdir -p /var/log/redis
+sudo mkdir -p /var/run/redis
+sudo chown redis:redis /var/lib/redis /var/log/redis /var/run/redis
+sudo chmod 770 /var/lib/redis /var/log/redis /var/run/redis
+
+#6. copy the config file and set the following parameters
+
+sudo cp redis.conf /etc/
+sudo chown redis:redis /etc/redis.conf
+sudo chmod 660 /etc/redis.conf
+
+sudo vi /etc/redis.conf
+daemonize yes			        	#run as a daemon
+supervised systemd		         	#signal systemd
+pidfile /var/run/redis/redis.pid 	#specify pid file
+logfile /var/log/redis/redis.log	      #log file name
+dir /var/lib/redis/			      #redis directory
+
+#7. create a systemd unit file for redis in order to control the daemon
+
+sudo vi /etc/systemd/system/redis.service
+
+[Unit]
+Description=Redis persistent key-value database
+After=network.target
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/redis-server /etc/redis.conf
+ExecStop=/usr/local/bin/redis-cli shutdown
+Type=notify
+User=redis
+Group=redis
+RuntimeDirectory=redis
+RuntimeDirectoryMode=0770
+
+[Install]
+WantedBy=multi-user.target
+
+#8. enable redis to start when system restarts
+sudo systemctl enable redis
+
+#9. start the redis server using systemctl
+
+sudo systemctl start redis
+  
+#1. Stop Redis server if it’s already running.
+sudo systemctl stop redis
+
+#2. Now delete everything related to Redis server from /usr/local/bin/
+sudo rm /usr/local/bin/redis-*
+
+#3. Now delete Redis Configuration files directory and it’s content.
+sudo rm -rf /etc/redis.conf
+
+#4. Delete existing Redis log files.
+sudo rm -rf /var/log/redis
+
+#5. Delete existing Redis data directory and it’s content
+sudo rm -rf /var/lib/redis
+
+#6. Remove existing Redis PID files (Only if exists)
+sudo rm -rf /var/run/redis
+
+#7. Delete existing Redis server init scripts
+sudo systemctl disable redis
+sudo rm -rf /etc/systemd/system/redis.service
+
+#8. If you want to remove the redis user
+sudo userdel redis
+
+Ubuntu
+
+#1. download the source and extract
+wget http://download.redis.io/releases/redis-5.0.5.tar.gz
+tar -xzvf redis-5.0.5.tar.gz && cd redis-5.0.5
+
+#2. install build essentials
+sudo apt-get install build-essential
+
+#3. Compile redis binaries
+make
+
+#4. install the redis binaries, default location /usr/local/bin
+sudo make install
+
+#5. create a redis user and required directories
+
+sudo groupadd redis
+sudo useradd -g redis -d /var/lib/redis -s /sbin/nologin redis
+sudo mkdir -p /var/lib/redis
+sudo mkdir -p /var/log/redis
+sudo mkdir -p /var/run/redis
+sudo chown redis:redis /var/lib/redis /var/log/redis /var/run/redis
+sudo chmod 770 /var/lib/redis /var/log/redis /var/run/redis
+
+#6. copy the config file and set the following parameters
+
+sudo cp redis.conf /etc/
+sudo chown redis:redis /etc/redis.conf
+sudo chmod 660 /etc/redis.conf
+
+sudo vi /etc/redis.conf
+daemonize yes			        	#run as a daemon
+supervised systemd		         	#signal systemd
+pidfile /var/run/redis/redis.pid 	#specify pid file
+logfile /var/log/reids/redis.log	#log file name
+dir /var/lib/redis/			        #redis directory
+
+#7. create a systemd unit file for redis in order to control the daemon 
+sudo vi /etc/systemd/system/redis.service
+
+[Unit]
+Description=Redis persistent key-value database
+After=network.target
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/redis-server /etc/redis.conf
+ExecStop=/usr/local/bin/redis-cli shutdown
+Type=notify
+User=redis
+Group=redis
+RuntimeDirectory=redis
+RuntimeDirectoryMode=0770
+
+[Install]
+WantedBy=multi-user.target
+
+#8. enable redis to start when system restarts
+sudo systemctl enable redis
+
+#9. start the redis server using systemctl
+
+sudo systemctl start redis
+#1. Stop Redis server if it’s already running.
+sudo systemctl stop redis
+
+#2. Now delete everything related to Redis server from /usr/local/bin/
+sudo rm /usr/local/bin/redis-*
+
+#3. Now delete Redis Configuration files directory and it’s content.
+sudo rm -rf /etc/redis.conf
+
+#4. Delete existing Redis log files.
+sudo rm -rf /var/log/redis
+
+#5. Delete existing Redis data directory and it’s content
+sudo rm -rf /var/lib/redis
+
+#6. Remove existing Redis PID files (Only if exists)
+sudo rm -rf /var/run/redis
+
+#7. Delete existing Redis server init scripts
+sudo systemctl disable redis
+sudo rm -rf /etc/systemd/system/redis.service
+
+#8. If you want to remove the redis user
+sudo userdel redis
+
+Problems encountered
+
+In ubuntu redis-cli errors out
+-bash: /usr/bin/redis-cli: No such file or directory
+
+Solution: hash redis-cli
+
+
+

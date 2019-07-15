@@ -1,0 +1,9 @@
+redis management tools:
+redis-commander https://github.com/joeferner/redis-commander
+redsmin https://www.redsmin.com
+redisdesktop https://redisdesktop.com/
+redmon http://steelthread.github.io/redmon/
+
+
+https://redislabs.com/blog/so-youre-looking-for-the-redis-gui/
+
